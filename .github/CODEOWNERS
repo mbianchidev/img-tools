@@ -1,0 +1,8 @@
+* @mbianchidev
+
+/src/ @mbianchidev
+/docs/ @mbianchidev
+/.github/ @mbianchidev
+/Dockerfile @mbianchidev
+/compose.yaml @mbianchidev
+/nginx.conf @mbianchidev
