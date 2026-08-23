@@ -32,7 +32,7 @@ export const TOOLS: ToolDefinition[] = [
   {
     id: 'crop',
     label: 'Crop',
-    description: 'Trim the frame or use a familiar aspect ratio.',
+    description: 'Drag and resize the frame or use a familiar aspect ratio.',
     icon: Crop,
   },
   {
@@ -56,7 +56,7 @@ export const TOOLS: ToolDefinition[] = [
   {
     id: 'stickers',
     label: 'Stickers',
-    description: 'Add simple emoji stickers and position them freely.',
+    description: 'Browse every emoji or use your own image as a sticker.',
     icon: SmilePlus,
   },
   {
@@ -74,7 +74,7 @@ export const TOOLS: ToolDefinition[] = [
   {
     id: 'blur',
     label: 'Blur area',
-    description: 'Hide a face, address, or other selected region.',
+    description: 'Drag a rectangular, rounded, or elliptical privacy mask.',
     icon: Blend,
   },
   {

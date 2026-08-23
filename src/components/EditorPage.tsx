@@ -81,6 +81,7 @@ export function EditorPage({ source, onNewImage }: EditorPageProps) {
       const target = event.target as HTMLElement | null
       if (
         target?.matches('input, textarea, select') ||
+        history.isTransactionActive ||
         (!event.metaKey && !event.ctrlKey)
       ) {
         return
@@ -177,7 +178,7 @@ export function EditorPage({ source, onNewImage }: EditorPageProps) {
             type="button"
             aria-label="Undo"
             title="Undo (⌘Z)"
-            disabled={!history.canUndo}
+            disabled={history.isTransactionActive || !history.canUndo}
             onClick={history.undo}
           >
             <Undo2 aria-hidden="true" />
@@ -187,7 +188,7 @@ export function EditorPage({ source, onNewImage }: EditorPageProps) {
             type="button"
             aria-label="Redo"
             title="Redo (⇧⌘Z)"
-            disabled={!history.canRedo}
+            disabled={history.isTransactionActive || !history.canRedo}
             onClick={history.redo}
           >
             <Redo2 aria-hidden="true" />
@@ -195,6 +196,7 @@ export function EditorPage({ source, onNewImage }: EditorPageProps) {
           <button
             className="button button--quiet button--small reset-button"
             type="button"
+            disabled={history.isTransactionActive}
             onClick={resetEdits}
           >
             <RotateCcw aria-hidden="true" />
@@ -245,6 +247,11 @@ export function EditorPage({ source, onNewImage }: EditorPageProps) {
           selectedStickerId={selectedStickerId}
           selectedBlurId={selectedBlurId}
           onChange={history.set}
+          onTransientChange={history.setTransient}
+          onInteractionStart={history.beginTransaction}
+          onInteractionEnd={history.commitTransaction}
+          onSelectedStickerIdChange={setSelectedStickerId}
+          onSelectedBlurIdChange={setSelectedBlurId}
           onRenderingChange={handleRenderingChange}
           onError={handlePreviewError}
         />

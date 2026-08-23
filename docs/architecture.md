@@ -24,13 +24,19 @@ The rendering order is:
 2. connected-background removal;
 3. rotation and mirroring;
 4. color filters and whole-image blur;
-5. vignette and selective blur regions;
-6. text and sticker layers;
+5. vignette and shape-clipped selective blur regions;
+6. text, emoji sticker, and local image sticker layers;
 7. watermark;
 8. export resize and encoding.
 
-Crop regions and layer positions use normalized coordinates, so preview and
-full-resolution export produce the same composition.
+Crop regions, blur masks, and layer positions use normalized coordinates, so
+pointer-based preview edits and full-resolution export produce the same
+composition. Pointer gestures use transient history updates and commit as one
+undo step when the gesture ends.
+
+The searchable emoji picker is code-split and loaded only when opened. Custom
+sticker images are decoded into local data URLs; their bytes never leave the
+browser tab.
 
 ## Target-size compression
 

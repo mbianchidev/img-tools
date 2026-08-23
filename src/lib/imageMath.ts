@@ -10,8 +10,16 @@ export interface Dimensions {
   height: number
 }
 
+export type ResizeHandle =
+  | 'north-west'
+  | 'north-east'
+  | 'south-east'
+  | 'south-west'
+
 export const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value))
+
+const roundNormalized = (value: number) => Math.round(value * 1_000_000) / 1_000_000
 
 export const normalizeRotation = (rotation: number) =>
   ((Math.round(rotation / 90) * 90) % 360 + 360) % 360
@@ -92,6 +100,67 @@ export const constrainCrop = (crop: CropRegion): CropRegion => {
     y,
     width: clamp(crop.width, 0.05, 1 - x),
     height: clamp(crop.height, 0.05, 1 - y),
+  }
+}
+
+export const moveNormalizedRect = (
+  rect: CropRegion,
+  deltaX: number,
+  deltaY: number,
+): CropRegion => ({
+  ...rect,
+  x: roundNormalized(clamp(rect.x + deltaX, 0, 1 - rect.width)),
+  y: roundNormalized(clamp(rect.y + deltaY, 0, 1 - rect.height)),
+})
+
+export const resizeNormalizedRect = (
+  rect: CropRegion,
+  handle: ResizeHandle,
+  deltaX: number,
+  deltaY: number,
+  minimumWidth = 0.05,
+  minimumHeight = 0.05,
+): CropRegion => {
+  const right = rect.x + rect.width
+  const bottom = rect.y + rect.height
+  let left = rect.x
+  let top = rect.y
+  let nextRight = right
+  let nextBottom = bottom
+
+  if (handle === 'north-west' || handle === 'south-west') {
+    left = clamp(rect.x + deltaX, 0, right - minimumWidth)
+  } else {
+    nextRight = clamp(right + deltaX, rect.x + minimumWidth, 1)
+  }
+
+  if (handle === 'north-west' || handle === 'north-east') {
+    top = clamp(rect.y + deltaY, 0, bottom - minimumHeight)
+  } else {
+    nextBottom = clamp(bottom + deltaY, rect.y + minimumHeight, 1)
+  }
+
+  return {
+    x: roundNormalized(left),
+    y: roundNormalized(top),
+    width: roundNormalized(nextRight - left),
+    height: roundNormalized(nextBottom - top),
+  }
+}
+
+export const getLayerRenderSize = (
+  canvasWidth: number,
+  canvasHeight: number,
+  size: number,
+  aspectRatio = 1,
+): Dimensions => {
+  const height = Math.max(1, Math.min(canvasWidth, canvasHeight) * (size / 100))
+  const safeAspectRatio =
+    Number.isFinite(aspectRatio) && aspectRatio > 0 ? aspectRatio : 1
+
+  return {
+    width: height * safeAspectRatio,
+    height,
   }
 }
 
