@@ -5,8 +5,11 @@ import {
   constrainCrop,
   fitWithin,
   formatBytes,
+  getLayerRenderSize,
   getOutputSize,
   getRotatedSize,
+  moveNormalizedRect,
+  resizeNormalizedRect,
 } from './imageMath'
 
 describe('image math', () => {
@@ -55,6 +58,62 @@ describe('image math', () => {
       y: 0,
       width: 0.19999999999999996,
       height: 0.05,
+    })
+  })
+
+  it('moves masks without letting them leave the image', () => {
+    expect(
+      moveNormalizedRect(
+        { x: 0.7, y: 0.1, width: 0.25, height: 0.4 },
+        0.2,
+        -0.3,
+      ),
+    ).toEqual({
+      x: 0.75,
+      y: 0,
+      width: 0.25,
+      height: 0.4,
+    })
+  })
+
+  it('resizes masks from each corner while preserving minimum dimensions', () => {
+    expect(
+      resizeNormalizedRect(
+        { x: 0.2, y: 0.2, width: 0.5, height: 0.5 },
+        'north-west',
+        0.6,
+        0.6,
+      ),
+    ).toEqual({
+      x: 0.65,
+      y: 0.65,
+      width: 0.05,
+      height: 0.05,
+    })
+
+    expect(
+      resizeNormalizedRect(
+        { x: 0.2, y: 0.2, width: 0.5, height: 0.5 },
+        'south-east',
+        0.6,
+        0.6,
+      ),
+    ).toEqual({
+      x: 0.2,
+      y: 0.2,
+      width: 0.8,
+      height: 0.8,
+    })
+  })
+
+  it('sizes custom image stickers without stretching their aspect ratio', () => {
+    expect(getLayerRenderSize(1200, 800, 25, 2)).toEqual({
+      width: 400,
+      height: 200,
+    })
+    expect(getLayerRenderSize(1200, 800, 25, 0.5)).toEqual({
+      width: 100,
+      height: 200,
     })
   })
 

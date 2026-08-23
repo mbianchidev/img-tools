@@ -26,7 +26,7 @@ const featureCards = [
   {
     icon: Sparkles,
     title: 'Finish it',
-    copy: 'Tune color, add text, stickers, backgrounds, and watermarks.',
+    copy: 'Tune color, add text, any emoji, custom image stickers, and watermarks.',
   },
   {
     icon: ImageMinus,
@@ -151,10 +151,10 @@ export function LandingPage({
               'Compress to quality or max MB',
               'Crop and rotate',
               'JPG · PNG · WebP',
-              'Text and stickers',
+              'Text, emoji, and image stickers',
               'Effects and filters',
               'Background removal',
-              'Selective blur',
+              'Shaped selective blur',
               'Resize and upscale',
               'Solid backgrounds',
               'Watermarks',

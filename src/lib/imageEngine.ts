@@ -2,11 +2,12 @@ import {
   buildFilterString,
   clamp,
   fitWithin,
+  getLayerRenderSize,
   getRotatedSize,
   getWatermarkAnchor,
   normalizeRotation,
 } from './imageMath'
-import type { EditorState, LoadedImage } from '../types/editor'
+import type { BlurShape, EditorState, LoadedImage } from '../types/editor'
 
 interface RenderOptions {
   maxDimension?: number
@@ -202,6 +203,32 @@ const drawBlurAreas = (
   const snapshot = createCanvas(canvas.width, canvas.height)
   getContext(snapshot).drawImage(canvas, 0, 0)
 
+  const traceMask = (
+    shape: BlurShape,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) => {
+    if (shape === 'ellipse') {
+      context.ellipse(
+        x + width / 2,
+        y + height / 2,
+        width / 2,
+        height / 2,
+        0,
+        0,
+        Math.PI * 2,
+      )
+      return
+    }
+    if (shape === 'rounded') {
+      context.roundRect(x, y, width, height, Math.min(width, height) * 0.22)
+      return
+    }
+    context.rect(x, y, width, height)
+  }
+
   for (const area of state.blurAreas) {
     const x = area.x * canvas.width
     const y = area.y * canvas.height
@@ -209,7 +236,7 @@ const drawBlurAreas = (
     const height = area.height * canvas.height
     context.save()
     context.beginPath()
-    context.rect(x, y, width, height)
+    traceMask(area.shape, x, y, width, height)
     context.clip()
     context.filter = `blur(${Math.max(1, area.amount * scale)}px)`
     context.drawImage(snapshot, 0, 0)
@@ -247,15 +274,28 @@ const drawStickerLayers = (
   state: EditorState,
 ) => {
   for (const layer of state.stickerLayers) {
-    const fontSize = Math.max(16, Math.min(width, height) * (layer.size / 100))
     context.save()
     context.translate(layer.x * width, layer.y * height)
     context.rotate((layer.rotation * Math.PI) / 180)
     context.globalAlpha = layer.opacity / 100
-    context.font = `${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`
-    context.textAlign = 'center'
-    context.textBaseline = 'middle'
-    context.fillText(layer.symbol, 0, 0)
+
+    if (layer.kind === 'image') {
+      const size = getLayerRenderSize(width, height, layer.size, layer.aspectRatio)
+      context.drawImage(
+        layer.image,
+        -size.width / 2,
+        -size.height / 2,
+        size.width,
+        size.height,
+      )
+    } else {
+      const fontSize = Math.max(16, Math.min(width, height) * (layer.size / 100))
+      context.font = `${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`
+      context.textAlign = 'center'
+      context.textBaseline = 'middle'
+      context.fillText(layer.symbol, 0, 0)
+    }
+
     context.restore()
   }
 }

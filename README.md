@@ -11,13 +11,16 @@ crop, resize, retouch, and convert images without uploading them to a server.
 
 - **Compress by quality or maximum size** — choose an exact quality, or provide a
   maximum MB target and let the export pipeline tune quality and dimensions.
-- **Crop, rotate, and mirror** — use common aspect ratios or precise edge controls.
+- **Crop, rotate, and mirror** — drag and resize the crop frame, use common
+  aspect ratios, or adjust precise edge controls.
 - **Convert formats** — export any browser-readable image to JPG, PNG, or WebP.
-- **Add text and stickers** — layer, position, rotate, recolor, and resize additions.
+- **Add text and stickers** — browse a complete searchable emoji pack or add a
+  local custom image, then position, rotate, and resize additions.
 - **Apply effects and filters** — adjust light, contrast, color, blur, and vignette.
 - **Remove backgrounds** — clear a connected near-solid background with adjustable
   tolerance and feathering.
-- **Blur selected areas** — cover faces, addresses, or any rectangular region.
+- **Blur selected areas** — drag and resize rectangular, rounded, or elliptical
+  masks over faces, addresses, or other private details.
 - **Resize and upscale** — export from 10% to 400% with high-quality resampling.
 - **Add solid backgrounds** — fill transparent or removed areas with any color.
 - **Add watermarks** — place a corner mark or tile it across the image.
@@ -61,8 +64,8 @@ IMG_TOOLS_PORT=3000 docker compose up
 
 1. Drop an image on the home page or choose **Try the demo image**.
 2. Pick a tool from the left rail. Changes appear in the live preview.
-3. Drag selected text, stickers, and blur regions directly on the image, or use
-   the precise controls.
+3. Drag crop frames, stickers, and blur masks directly on the image. Resize crop
+   and blur masks from any corner, or use the precise controls.
 4. Choose **Export**, select JPG, PNG, or WebP, then download the result.
 
 Keyboard shortcuts:
@@ -79,6 +82,7 @@ The current versions of Chrome, Edge, Firefox, and Safari are supported.
 
 - Browser decoding determines which source formats can be opened.
 - Animated GIFs are edited as a single frame.
+- Custom image stickers accept JPG, PNG, WebP, AVIF, or GIF files up to 20 MB.
 - Background removal targets backgrounds connected to the image edge; it is not
   generative subject segmentation.
 - Upscaling uses high-quality resampling and does not invent new detail.

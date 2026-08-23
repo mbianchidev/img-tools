@@ -1,14 +1,23 @@
 import {
+  lazy,
+  Suspense,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from 'react'
+import {
   ArrowDownToLine,
   Check,
   FlipHorizontal2,
   FlipVertical2,
+  ImagePlus,
   Plus,
   RotateCcw,
   RotateCw,
   Trash2,
 } from 'lucide-react'
 import { TOOLS } from '../constants/tools'
+import { loadStickerImageFile } from '../lib/files'
 import {
   centerCropForAspect,
   clamp,
@@ -18,6 +27,7 @@ import {
 } from '../lib/imageMath'
 import {
   DEFAULT_FILTERS,
+  type BlurShape,
   type EditorState,
   type ExportSettings,
   type FilterSettings,
@@ -165,9 +175,18 @@ const filterPresets: Array<{
   },
 ]
 
-const stickerOptions = ['✨', '★', '♥', '🔥', '🌿', '☀️', '✓', '⚡']
-
 const createId = () => crypto.randomUUID()
+const EmojiStickerPicker = lazy(() =>
+  import('./EmojiStickerPicker').then((module) => ({
+    default: module.EmojiStickerPicker,
+  })),
+)
+
+const blurShapeLabels: Record<BlurShape, string> = {
+  rectangle: 'Rectangle',
+  rounded: 'Rounded',
+  ellipse: 'Circle / oval',
+}
 
 function PanelHeading({ activeTool }: { activeTool: ToolId }) {
   const tool = TOOLS.find(({ id }) => id === activeTool) ?? TOOLS[0]
@@ -216,6 +235,10 @@ export function ToolPanel({
   selectedBlurId,
   onSelectedBlurIdChange,
 }: ToolPanelProps) {
+  const stickerInputRef = useRef<HTMLInputElement>(null)
+  const [stickerSource, setStickerSource] = useState<'emoji' | 'image'>('emoji')
+  const [stickerLoading, setStickerLoading] = useState(false)
+  const [stickerError, setStickerError] = useState<string | null>(null)
   const baseSize = getBaseOutputSize(
     source.width,
     source.height,
@@ -261,7 +284,11 @@ export function ToolPanel({
     }))
   }
 
-  const updateSticker = (patch: Partial<StickerLayer>) => {
+  const updateSticker = (
+    patch: Partial<
+      Pick<StickerLayer, 'x' | 'y' | 'size' | 'opacity' | 'rotation'>
+    >,
+  ) => {
     if (!selectedStickerId) {
       return
     }
@@ -271,6 +298,95 @@ export function ToolPanel({
         layer.id === selectedStickerId ? { ...layer, ...patch } : layer,
       ),
     }))
+  }
+
+  const addEmojiSticker = (symbol: string) => {
+    const id = createId()
+    onChange((current) => ({
+      ...current,
+      stickerLayers: [
+        ...current.stickerLayers,
+        {
+          id,
+          kind: 'emoji',
+          symbol,
+          x: 0.5,
+          y: 0.5,
+          size: 12,
+          opacity: 100,
+          rotation: 0,
+        },
+      ],
+    }))
+    onSelectedStickerIdChange(id)
+  }
+
+  const handleStickerFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+
+    setStickerLoading(true)
+    setStickerError(null)
+    try {
+      const image = await loadStickerImageFile(file)
+      const id = createId()
+      onChange((current) => ({
+        ...current,
+        stickerLayers: [
+          ...current.stickerLayers,
+          {
+            id,
+            kind: 'image',
+            name: image.name,
+            image: image.element,
+            aspectRatio: image.width / image.height,
+            x: 0.5,
+            y: 0.5,
+            size: 20,
+            opacity: 100,
+            rotation: 0,
+          },
+        ],
+      }))
+      onSelectedStickerIdChange(id)
+    } catch (error) {
+      setStickerError(
+        error instanceof Error
+          ? error.message
+          : 'The custom sticker could not be added.',
+      )
+    } finally {
+      setStickerLoading(false)
+      event.target.value = ''
+    }
+  }
+
+  const addBlurArea = (shape: BlurShape) => {
+    const id = createId()
+    const width = shape === 'ellipse' ? 0.24 : 0.3
+    const height =
+      shape === 'ellipse'
+        ? clamp(width * (baseSize.width / baseSize.height), 0.12, 0.5)
+        : 0.22
+
+    onChange((current) => ({
+      ...current,
+      blurAreas: [
+        ...current.blurAreas,
+        {
+          id,
+          x: (1 - width) / 2,
+          y: (1 - height) / 2,
+          width,
+          height,
+          amount: 18,
+          shape,
+        },
+      ],
+    }))
+    onSelectedBlurIdChange(id)
   }
 
   return (
@@ -658,40 +774,71 @@ export function ToolPanel({
 
         {activeTool === 'stickers' ? (
           <>
-            <div className="sticker-picker" aria-label="Add a sticker">
-              {stickerOptions.map((symbol) => (
+            <div className="segmented" aria-label="Sticker source">
+              {(['emoji', 'image'] as const).map((sourceType) => (
                 <button
                   type="button"
-                  key={symbol}
-                  aria-label={`Add ${symbol} sticker`}
+                  className={stickerSource === sourceType ? 'is-active' : ''}
+                  key={sourceType}
                   onClick={() => {
-                    const id = createId()
-                    onChange((current) => ({
-                      ...current,
-                      stickerLayers: [
-                        ...current.stickerLayers,
-                        {
-                          id,
-                          symbol,
-                          x: 0.5,
-                          y: 0.5,
-                          size: 12,
-                          opacity: 100,
-                          rotation: 0,
-                        },
-                      ],
-                    }))
-                    onSelectedStickerIdChange(id)
+                    setStickerSource(sourceType)
+                    setStickerError(null)
                   }}
                 >
-                  {symbol}
+                  {sourceType === 'emoji' ? 'Emoji pack' : 'Custom image'}
                 </button>
               ))}
             </div>
+
+            {stickerSource === 'emoji' ? (
+              <div className="emoji-picker-shell">
+                <Suspense
+                  fallback={
+                    <div className="emoji-picker-loading" role="status">
+                      Loading emoji pack…
+                    </div>
+                  }
+                >
+                  <EmojiStickerPicker onSelect={addEmojiSticker} />
+                </Suspense>
+              </div>
+            ) : (
+              <div className="custom-sticker-upload">
+                <span className="custom-sticker-upload__icon" aria-hidden="true">
+                  <ImagePlus />
+                </span>
+                <strong>Use your own sticker</strong>
+                <p>Choose a JPG, PNG, WebP, AVIF, or GIF up to 20 MB.</p>
+                <input
+                  ref={stickerInputRef}
+                  className="sr-only"
+                  type="file"
+                  accept="image/avif,image/gif,image/jpeg,image/png,image/webp"
+                  onChange={handleStickerFile}
+                />
+                <button
+                  className="button button--secondary"
+                  type="button"
+                  disabled={stickerLoading}
+                  onClick={() => stickerInputRef.current?.click()}
+                >
+                  <ImagePlus aria-hidden="true" />
+                  {stickerLoading ? 'Adding image…' : 'Choose image'}
+                </button>
+              </div>
+            )}
+            {stickerError ? (
+              <p className="field-error" role="alert">
+                {stickerError}
+              </p>
+            ) : null}
             <LayerList
-              items={state.stickerLayers.map(({ id, symbol }) => ({
-                id,
-                label: `${symbol} sticker`,
+              items={state.stickerLayers.map((layer) => ({
+                id: layer.id,
+                label:
+                  layer.kind === 'emoji'
+                    ? `${layer.symbol} emoji`
+                    : layer.name,
               }))}
               selectedId={selectedStickerId}
               onSelect={onSelectedStickerIdChange}
@@ -713,7 +860,7 @@ export function ToolPanel({
                   label="Size"
                   value={selectedSticker.size}
                   min={3}
-                  max={32}
+                  max={60}
                   suffix="%"
                   onChange={(size) => updateSticker({ size })}
                 />
@@ -751,7 +898,7 @@ export function ToolPanel({
                 />
               </div>
             ) : (
-              <EmptyLayer message="Pick a sticker to place it." />
+              <EmptyLayer message="Pick an emoji or add an image, then drag and resize it on the photo." />
             )}
           </>
         ) : null}
@@ -885,35 +1032,25 @@ export function ToolPanel({
 
         {activeTool === 'blur' ? (
           <>
-            <button
-              className="button button--secondary button--wide"
-              type="button"
-              onClick={() => {
-                const id = createId()
-                onChange((current) => ({
-                  ...current,
-                  blurAreas: [
-                    ...current.blurAreas,
-                    {
-                      id,
-                      x: 0.35,
-                      y: 0.38,
-                      width: 0.3,
-                      height: 0.22,
-                      amount: 18,
-                    },
-                  ],
-                }))
-                onSelectedBlurIdChange(id)
-              }}
-            >
-              <Plus aria-hidden="true" />
-              Add blur area
-            </button>
+            <div className="control-section">
+              <span className="control-label">Add a mask</span>
+              <div className="shape-picker">
+                {(Object.keys(blurShapeLabels) as BlurShape[]).map((shape) => (
+                  <button
+                    type="button"
+                    key={shape}
+                    onClick={() => addBlurArea(shape)}
+                  >
+                    <i className={`shape-swatch shape-swatch--${shape}`} />
+                    {blurShapeLabels[shape]}
+                  </button>
+                ))}
+              </div>
+            </div>
             <LayerList
-              items={state.blurAreas.map(({ id }, index) => ({
+              items={state.blurAreas.map(({ id, shape }, index) => ({
                 id,
-                label: `Blur area ${index + 1}`,
+                label: `${blurShapeLabels[shape]} ${index + 1}`,
               }))}
               selectedId={selectedBlurId}
               onSelect={onSelectedBlurIdChange}
@@ -929,6 +1066,30 @@ export function ToolPanel({
             />
             {selectedBlur ? (
               <div className="layer-controls">
+                <div className="control-section">
+                  <span className="control-label">Mask shape</span>
+                  <div className="preset-grid preset-grid--three">
+                    {(Object.keys(blurShapeLabels) as BlurShape[]).map((shape) => (
+                      <button
+                        type="button"
+                        className={selectedBlur.shape === shape ? 'is-active' : ''}
+                        key={shape}
+                        onClick={() =>
+                          onChange((current) => ({
+                            ...current,
+                            blurAreas: current.blurAreas.map((area) =>
+                              area.id === selectedBlur.id
+                                ? { ...area, shape }
+                                : area,
+                            ),
+                          }))
+                        }
+                      >
+                        {blurShapeLabels[shape]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <RangeField
                   label="Blur strength"
                   value={selectedBlur.amount}
@@ -980,7 +1141,7 @@ export function ToolPanel({
                 ))}
               </div>
             ) : (
-              <EmptyLayer message="Add a blur area, then drag its outline on the image." />
+              <EmptyLayer message="Add a mask, then drag or resize its outline directly on the image." />
             )}
           </>
         ) : null}

@@ -44,15 +44,30 @@ export interface TextLayer {
   rotation: number
 }
 
-export interface StickerLayer {
+interface BaseStickerLayer {
   id: string
-  symbol: string
   x: number
   y: number
   size: number
   opacity: number
   rotation: number
 }
+
+export interface EmojiStickerLayer extends BaseStickerLayer {
+  kind: 'emoji'
+  symbol: string
+}
+
+export interface ImageStickerLayer extends BaseStickerLayer {
+  kind: 'image'
+  name: string
+  image: HTMLImageElement
+  aspectRatio: number
+}
+
+export type StickerLayer = EmojiStickerLayer | ImageStickerLayer
+
+export type BlurShape = 'rectangle' | 'rounded' | 'ellipse'
 
 export interface BlurArea {
   id: string
@@ -61,6 +76,7 @@ export interface BlurArea {
   width: number
   height: number
   amount: number
+  shape: BlurShape
 }
 
 export interface WatermarkSettings {

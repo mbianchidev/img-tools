@@ -1,6 +1,21 @@
 import type { LoadedImage } from '../types/editor'
 
 const MAX_FILE_BYTES = 80 * 1024 * 1024
+const MAX_STICKER_FILE_BYTES = 20 * 1024 * 1024
+const STICKER_IMAGE_TYPES = new Set([
+  'image/avif',
+  'image/gif',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+])
+
+export interface LoadedStickerImage {
+  element: HTMLImageElement
+  name: string
+  width: number
+  height: number
+}
 
 export const validateImageFile = (file: File) => {
   if (!file.type.startsWith('image/')) {
@@ -42,6 +57,58 @@ export const loadImageFile = async (file: File): Promise<LoadedImage> => {
     width: image.naturalWidth,
     height: image.naturalHeight,
     objectUrl,
+  }
+}
+
+export const validateStickerImageFile = (file: File) => {
+  if (!STICKER_IMAGE_TYPES.has(file.type)) {
+    return 'Choose a JPG, PNG, WebP, AVIF, or GIF image for the sticker.'
+  }
+  if (file.size > MAX_STICKER_FILE_BYTES) {
+    return 'Custom stickers must be 20 MB or smaller.'
+  }
+  return null
+}
+
+export const loadStickerImageFile = async (
+  file: File,
+): Promise<LoadedStickerImage> => {
+  const validationError = validateStickerImageFile(file)
+  if (validationError) {
+    throw new Error(validationError)
+  }
+
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('The sticker image could not be read.'))
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+      } else {
+        reject(new Error('The sticker image could not be read.'))
+      }
+    }
+    reader.readAsDataURL(file)
+  })
+  const image = new Image()
+  image.decoding = 'async'
+  image.src = dataUrl
+
+  try {
+    await image.decode()
+  } catch {
+    throw new Error('The sticker image could not be decoded. Try JPG, PNG, or WebP.')
+  }
+
+  if (image.naturalWidth === 0 || image.naturalHeight === 0) {
+    throw new Error('The sticker image has no readable pixels.')
+  }
+
+  return {
+    element: image,
+    name: file.name,
+    width: image.naturalWidth,
+    height: image.naturalHeight,
   }
 }
 

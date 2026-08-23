@@ -991,7 +991,7 @@ svg {
 
 .canvas-frame {
   position: relative;
-  height: 100%;
+  flex: 0 0 auto;
   max-width: 100%;
   max-height: 100%;
   background: transparent;
@@ -1012,8 +1012,8 @@ svg {
   position: absolute;
   z-index: 4;
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   place-items: center;
   color: var(--ink);
@@ -1029,28 +1029,158 @@ svg {
   width: 16px;
 }
 
-.blur-handle {
+.transform-frame,
+.sticker-transform {
   position: absolute;
   z-index: 3;
-  min-width: 48px;
-  min-height: 38px;
-  padding: 0;
-  color: white;
-  background: rgb(91 75 216 / 12%);
-  border: 2px dashed var(--sun);
   touch-action: none;
 }
 
-.blur-handle span {
+.transform-frame__move {
   position: absolute;
-  top: -25px;
-  left: -2px;
-  padding: 3px 7px;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  min-width: 100%;
+  height: 100%;
+  min-height: 100%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: inherit;
+  cursor: move;
+  touch-action: none;
+}
+
+.transform-frame__label {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  left: 7px;
+  padding: 4px 7px;
   color: var(--ink);
   background: var(--sun);
-  font-size: 9px;
-  font-weight: 800;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 22%);
+  font-size: 10px;
+  font-weight: 850;
   white-space: nowrap;
+}
+
+.crop-frame {
+  z-index: 5;
+  border: 2px solid white;
+  box-shadow:
+    0 0 0 9999px rgb(9 7 24 / 58%),
+    0 0 0 1px rgb(18 14 52 / 50%);
+}
+
+.crop-frame__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      to right,
+      transparent calc(33.333% - 0.5px),
+      rgb(255 255 255 / 42%) calc(33.333% - 0.5px),
+      rgb(255 255 255 / 42%) calc(33.333% + 0.5px),
+      transparent calc(33.333% + 0.5px),
+      transparent calc(66.666% - 0.5px),
+      rgb(255 255 255 / 42%) calc(66.666% - 0.5px),
+      rgb(255 255 255 / 42%) calc(66.666% + 0.5px),
+      transparent calc(66.666% + 0.5px)
+    ),
+    linear-gradient(
+      to bottom,
+      transparent calc(33.333% - 0.5px),
+      rgb(255 255 255 / 42%) calc(33.333% - 0.5px),
+      rgb(255 255 255 / 42%) calc(33.333% + 0.5px),
+      transparent calc(33.333% + 0.5px),
+      transparent calc(66.666% - 0.5px),
+      rgb(255 255 255 / 42%) calc(66.666% - 0.5px),
+      rgb(255 255 255 / 42%) calc(66.666% + 0.5px),
+      transparent calc(66.666% + 0.5px)
+    );
+}
+
+.blur-frame {
+  min-width: 44px;
+  min-height: 44px;
+  background: rgb(91 75 216 / 10%);
+  border: 1px dashed rgb(255 255 255 / 76%);
+}
+
+.blur-frame.is-selected {
+  z-index: 4;
+  background: rgb(91 75 216 / 15%);
+  border: 2px dashed var(--sun);
+}
+
+.blur-frame--rounded {
+  border-radius: min(22px, 22%);
+}
+
+.blur-frame--ellipse {
+  border-radius: 50%;
+}
+
+.sticker-transform {
+  z-index: 4;
+  min-width: 30px;
+  min-height: 30px;
+  border: 1px dashed transparent;
+}
+
+.sticker-transform.is-selected {
+  border: 2px dashed var(--sun);
+  box-shadow: 0 0 0 1px rgb(25 23 45 / 48%);
+}
+
+.resize-handle {
+  position: absolute;
+  z-index: 5;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: var(--sun);
+  border: 2px solid white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 32%);
+  touch-action: none;
+}
+
+.resize-handle::before {
+  position: absolute;
+  inset: -14px;
+  content: "";
+}
+
+.resize-handle--north-west {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+  transform: translate(-50%, -50%);
+}
+
+.resize-handle--north-east {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+  transform: translate(50%, -50%);
+}
+
+.resize-handle--south-east {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+  transform: translate(50%, 50%);
+}
+
+.resize-handle--south-west {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+  transform: translate(-50%, 50%);
 }
 
 .canvas-stage__footer {
@@ -1383,6 +1513,10 @@ input[type="range"]::-moz-range-thumb {
   gap: 6px;
 }
 
+.preset-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .preset-grid button {
   min-height: 37px;
   padding: 0 5px;
@@ -1543,27 +1677,144 @@ input[type="range"]::-moz-range-thumb {
   text-align: center;
 }
 
-.sticker-picker {
+.shape-picker {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 7px;
 }
 
-.sticker-picker button {
+.shape-picker button {
   display: grid;
-  min-height: 54px;
-  padding: 0;
+  min-height: 76px;
+  align-content: center;
+  padding: 8px 5px;
   place-items: center;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
-  font-size: 25px;
+  font-size: 10px;
+  font-weight: 750;
+  gap: 8px;
 }
 
-.sticker-picker button:hover {
-  background: var(--iris-soft);
-  border-color: var(--iris);
-  transform: translateY(-2px);
+.shape-swatch {
+  display: block;
+  width: 34px;
+  height: 25px;
+  background: rgb(91 75 216 / 14%);
+  border: 2px dashed var(--iris);
+}
+
+.shape-swatch--rounded {
+  border-radius: 9px;
+}
+
+.shape-swatch--ellipse {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.emoji-picker-shell {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.emoji-picker-shell .EmojiPickerReact {
+  --epr-bg-color: var(--surface);
+  --epr-category-label-bg-color: rgb(255 255 255 / 94%);
+  --epr-hover-bg-color: var(--iris-soft);
+  --epr-focus-bg-color: var(--iris-soft);
+  --epr-highlight-color: var(--iris);
+  border: 0;
+  border-radius: 0;
+  font-family: inherit;
+}
+
+.emoji-picker-shell .epr-search-container input {
+  min-height: 42px;
+  border-color: var(--line);
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.emoji-picker-loading {
+  display: grid;
+  min-height: 360px;
+  place-items: center;
+  color: var(--muted);
+  background:
+    linear-gradient(90deg, transparent, rgb(91 75 216 / 7%), transparent),
+    var(--surface);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.custom-sticker-upload {
+  display: grid;
+  padding: 26px 18px;
+  place-items: center;
+  text-align: center;
+  background:
+    linear-gradient(var(--surface-muted), var(--surface-muted)) padding-box,
+    repeating-linear-gradient(
+        135deg,
+        var(--iris),
+        var(--iris) 7px,
+        var(--aqua) 7px,
+        var(--aqua) 14px
+      )
+      border-box;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  gap: 8px;
+}
+
+.custom-sticker-upload__icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 4px;
+  place-items: center;
+  color: var(--iris);
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+}
+
+.custom-sticker-upload__icon svg {
+  width: 23px;
+}
+
+.custom-sticker-upload p {
+  max-width: 230px;
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.field-error {
+  margin: -8px 0 0;
+  padding: 9px 11px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid #ffc5ce;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .swatch-grid {
@@ -2098,6 +2349,27 @@ input[type="range"]::-moz-range-thumb {
     max-height: 94dvh;
     overflow-y: auto;
     box-shadow: 0 -8px 0 var(--coral);
+  }
+}
+
+@media (hover: hover) {
+  .shape-picker button:hover {
+    color: var(--iris-dark);
+    background: var(--iris-soft);
+    border-color: var(--iris);
+    transform: translateY(-2px);
+  }
+
+  .sticker-transform:not(.is-selected):hover,
+  .blur-frame:not(.is-selected):hover {
+    border-color: rgb(242 206 87 / 72%);
+  }
+}
+
+@media (pointer: coarse) {
+  .resize-handle {
+    width: 22px;
+    height: 22px;
   }
 }
 
