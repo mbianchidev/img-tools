@@ -7,6 +7,8 @@
 A free, open source image workbench that runs entirely in the browser. Compress,
 crop, resize, retouch, and convert images without uploading them to a server.
 
+Use the hosted app at [mbianchidev.github.io/img-tools](https://mbianchidev.github.io/img-tools/).
+
 <img width="1710" height="950" alt="image" src="https://github.com/user-attachments/assets/7048e793-c35d-4c99-bb6d-fc7929a4b8a7" />
 
 ## Features
