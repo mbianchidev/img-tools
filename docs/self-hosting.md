@@ -22,6 +22,15 @@ npm run build
 Publish the contents of `dist/` to any static host. Configure unknown paths to
 fall back to `index.html`.
 
+## GitHub Pages
+
+The Pages workflow builds the same static application with the repository base
+path reported by GitHub, then publishes `dist/`. It deploys when `main` changes
+and can also be run manually from the Actions tab.
+
+In **Settings → Pages**, set **Source** to **GitHub Actions**. The standard
+`npm run build` command remains unchanged for Docker and other static hosts.
+
 ## Reverse proxy
 
 The bundled Nginx configuration adds baseline browser security headers and
