@@ -42,8 +42,9 @@ before leaving; downloads are separate files and do not overwrite the source.
 
 ### Local development
 
-Requirements: Git, Node.js **22.22.2 or newer**, and npm. CI and the Docker build
-use Node.js 24. The app is a web application, not a native desktop application.
+Requirements: Git, Node.js **22.22.2 or newer**, and npm. Use Node.js **26.12.1**
+(`.nvmrc`) to match CI, GitHub Pages, and Docker builds. The app is a web
+application, not a native desktop application.
 
 ```bash
 git clone https://github.com/mbianchidev/img-tools.git

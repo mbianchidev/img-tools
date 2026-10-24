@@ -12,6 +12,9 @@ Contributions are welcome.
 
 ## Development
 
+Use the Node.js version pinned in `.nvmrc` to match CI. See the
+[local build requirements](docs/self-hosting.md#static-hosting) for setup.
+
 ```bash
 npm install
 npm run dev
