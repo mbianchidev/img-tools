@@ -28,6 +28,12 @@ The Pages workflow builds the same static application with the repository base
 path reported by GitHub, then publishes `dist/`. It deploys when `main` changes
 and can also be run manually from the Actions tab.
 
+Deployment status polling uses a one-second initial interval, with the deployment
+action's existing backoff and jitter. This shortens the initial status-check wait,
+not the server-side publishing time, and can make a few more status requests.
+Deployments keep their non-cancelling queue and `github-pages` environment
+restrictions.
+
 In **Settings → Pages**, set **Source** to **GitHub Actions**. The standard
 `npm run build` command remains unchanged for Docker and other static hosts.
 
