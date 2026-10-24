@@ -24,6 +24,12 @@ npm run check
 docker compose build --no-cache
 ```
 
+CI runs the `test` and `container` checks on pull requests, including drafts, and
+pushes to `main`. New commits cancel obsolete CI runs for the same pull request;
+`main` runs remain independent. The container check uses the runner's bundled
+Docker builder without a layer cache. Pages deployments keep their separate
+non-cancelling queue.
+
 ## Pull requests
 
 - Keep each pull request focused.
