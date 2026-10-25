@@ -14,6 +14,11 @@ the host port.
 
 ## Static hosting
 
+Use Node.js **26.12.1**, pinned in `.nvmrc`, and npm for local builds. With nvm
+installed, run `nvm install` and `nvm use` from the repository root. CI and GitHub
+Pages read `.nvmrc`; the Docker build uses the matching Node.js image. The minimum
+supported Node.js version remains **22.22.2**.
+
 ```bash
 npm ci
 npm run build
